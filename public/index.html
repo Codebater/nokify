@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#1a2033">
+<title>NOKIFY — Nokia-fy any song</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="phone">
+  <div class="brand">NOKIFY</div>
+
+  <div class="lcd-frame">
+    <div class="lcd">
+      <div class="lcd-status">
+        <span id="lcdSignal">▮▮▮▯</span>
+        <span id="lcdTitleTicker" class="ticker"><span id="lcdTickerText">Insert YouTube link</span></span>
+        <span id="lcdBatt">▮▮▮</span>
+      </div>
+      <canvas id="lcdCanvas" width="336" height="180"></canvas>
+      <div class="lcd-softkeys">
+        <span id="softLeft">Menu</span>
+        <span id="softRight">Names</span>
+      </div>
+      <div class="lcd-scanlines"></div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <div class="url-row">
+      <input id="urlInput" type="url" inputmode="url" autocomplete="off" spellcheck="false"
+             placeholder="Paste YouTube link…">
+      <button id="loadBtn" class="key key-load">LOAD</button>
+    </div>
+
+    <div id="segmentPanel" class="segment-panel hidden">
+      <div class="seg-row">
+        <label>PART&nbsp;START <b id="startLabel">0:00</b></label>
+        <input id="startSlider" type="range" min="0" max="100" step="1" value="0">
+      </div>
+      <div class="seg-row chips-row">
+        <label>LENGTH</label>
+        <div class="chips">
+          <button class="chip" data-dur="5">5s</button>
+          <button class="chip active" data-dur="10">10s</button>
+          <button class="chip" data-dur="15">15s</button>
+        </div>
+      </div>
+      <button id="nokifyBtn" class="key key-nokify">☎ NOKIFY THIS PART</button>
+    </div>
+
+    <div id="resultPanel" class="result-panel hidden">
+      <div class="keypad">
+        <button id="playToneBtn" class="key key-round">▶<small>TONE</small></button>
+        <button id="playOrigBtn" class="key key-round">▶<small>ORIG</small></button>
+        <button id="stopBtn" class="key key-round">■<small>STOP</small></button>
+        <button id="copyBtn" class="key key-round">✉<small>RTTTL</small></button>
+      </div>
+      <textarea id="rtttlOut" class="rtttl" readonly rows="2" spellcheck="false"></textarea>
+    </div>
+  </div>
+
+  <div class="foot">MONOPHONIC · 1 CHANNEL · 3310 CERTIFIED</div>
+</div>
+<script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,272 @@
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+:root {
+  --body-dark: #171c2e;
+  --body-mid: #232a44;
+  --body-light: #39456e;
+  --accent: #4e9aff;
+  --lcd-bg: #9ead86;
+  --lcd-dark: #26301f;
+  --lcd-dim: #56644a;
+  --key-face: #2b3352;
+  --key-edge: #10141f;
+}
+
+html, body {
+  height: 100%;
+  background: #0b0e18;
+  font-family: "Segoe UI", system-ui, sans-serif;
+  color: #cdd6f4;
+  overscroll-behavior: none;
+}
+
+body {
+  display: flex;
+  justify-content: center;
+  padding: 12px 10px 24px;
+}
+
+.phone {
+  width: 100%;
+  max-width: 430px;
+  border-radius: 42px 42px 34px 34px;
+  padding: 22px 18px 18px;
+  background:
+    radial-gradient(120% 60% at 50% 0%, var(--body-light) 0%, var(--body-mid) 45%, var(--body-dark) 100%);
+  box-shadow:
+    inset 0 2px 2px rgba(255,255,255,.14),
+    inset 0 -6px 14px rgba(0,0,0,.55),
+    0 18px 40px rgba(0,0,0,.6);
+}
+
+.brand {
+  text-align: center;
+  font-weight: 800;
+  letter-spacing: .42em;
+  text-indent: .42em;
+  font-size: 15px;
+  color: #aebbe6;
+  text-shadow: 0 1px 0 #000;
+  margin-bottom: 12px;
+}
+
+/* ---------- LCD ---------- */
+.lcd-frame {
+  border-radius: 22px;
+  padding: 10px;
+  background: linear-gradient(180deg, #0e1120, #1c2236);
+  box-shadow: inset 0 3px 8px rgba(0,0,0,.8), 0 1px 0 rgba(255,255,255,.08);
+}
+
+.lcd {
+  position: relative;
+  border-radius: 10px;
+  background: var(--lcd-bg);
+  padding: 8px 8px 6px;
+  overflow: hidden;
+  box-shadow: inset 0 0 18px rgba(30,40,20,.35);
+}
+
+.lcd-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: "Courier New", monospace;
+  font-weight: 700;
+  font-size: 12px;
+  color: var(--lcd-dark);
+  padding-bottom: 4px;
+  border-bottom: 2px solid var(--lcd-dark);
+}
+
+.ticker {
+  flex: 1;
+  overflow: hidden;
+  white-space: nowrap;
+  text-align: center;
+}
+.ticker span { display: inline-block; }
+.ticker.scroll span { animation: tick 9s linear infinite; }
+@keyframes tick {
+  0%   { transform: translateX(60%); }
+  100% { transform: translateX(-110%); }
+}
+
+#lcdCanvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  image-rendering: pixelated;
+  margin-top: 4px;
+}
+
+.lcd-softkeys {
+  display: flex;
+  justify-content: space-between;
+  font-family: "Courier New", monospace;
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--lcd-dark);
+  padding-top: 2px;
+}
+
+.lcd-scanlines {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    repeating-linear-gradient(0deg, rgba(38,48,31,.09) 0 1px, transparent 1px 3px),
+    repeating-linear-gradient(90deg, rgba(38,48,31,.05) 0 1px, transparent 1px 3px);
+  border-radius: 10px;
+}
+
+/* ---------- Controls ---------- */
+.controls { margin-top: 16px; }
+
+.url-row { display: flex; gap: 8px; }
+
+#urlInput {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  outline: none;
+  border-radius: 12px;
+  padding: 13px 14px;
+  font-size: 15px;
+  background: #0d1120;
+  color: #dfe7ff;
+  box-shadow: inset 0 2px 6px rgba(0,0,0,.7), inset 0 -1px 0 rgba(255,255,255,.06);
+}
+#urlInput::placeholder { color: #55608a; }
+
+.key {
+  border: none;
+  cursor: pointer;
+  font-weight: 800;
+  color: #e8eeff;
+  border-radius: 12px;
+  background: linear-gradient(180deg, #3b4670, var(--key-face) 55%, #1d2338);
+  box-shadow:
+    0 4px 0 var(--key-edge),
+    inset 0 1px 0 rgba(255,255,255,.22);
+  transition: transform .05s, box-shadow .05s, filter .15s;
+  user-select: none;
+  touch-action: manipulation;
+}
+.key:active {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 var(--key-edge), inset 0 1px 0 rgba(255,255,255,.15);
+}
+.key:disabled { filter: grayscale(.7) brightness(.6); pointer-events: none; }
+
+.key-load { padding: 0 20px; font-size: 14px; letter-spacing: .06em; }
+
+.segment-panel { margin-top: 16px; }
+.hidden { display: none !important; }
+
+.seg-row { margin-bottom: 12px; }
+.seg-row label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .14em;
+  color: #8794c4;
+  margin-bottom: 6px;
+}
+.seg-row label b { color: #fff; font-size: 13px; letter-spacing: 0; }
+
+input[type="range"] {
+  -webkit-appearance: none;
+  width: 100%;
+  height: 26px;
+  background: transparent;
+}
+input[type="range"]::-webkit-slider-runnable-track {
+  height: 10px;
+  border-radius: 6px;
+  background: #0d1120;
+  box-shadow: inset 0 2px 5px rgba(0,0,0,.8);
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 26px;
+  height: 26px;
+  margin-top: -8px;
+  border-radius: 50%;
+  background: linear-gradient(180deg, #6ea8ff, #2f6fd6);
+  box-shadow: 0 3px 6px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.5);
+}
+
+.chips-row label { margin-bottom: 8px; }
+.chips { display: flex; gap: 8px; }
+.chip {
+  flex: 1;
+  padding: 9px 0;
+  border: none;
+  border-radius: 10px;
+  font-weight: 800;
+  font-size: 13px;
+  color: #97a3d0;
+  background: #10152a;
+  box-shadow: inset 0 2px 5px rgba(0,0,0,.7);
+  cursor: pointer;
+}
+.chip.active {
+  color: #fff;
+  background: linear-gradient(180deg, #3b74d8, #2a54a4);
+  box-shadow: 0 3px 0 #14264a, inset 0 1px 0 rgba(255,255,255,.35);
+}
+
+.key-nokify {
+  width: 100%;
+  padding: 15px 0;
+  font-size: 16px;
+  letter-spacing: .08em;
+  border-radius: 16px;
+  background: linear-gradient(180deg, #57b26a, #2e7d43 60%, #1e5b2e);
+  box-shadow: 0 5px 0 #103319, inset 0 1px 0 rgba(255,255,255,.3);
+}
+.key-nokify:active { box-shadow: 0 1px 0 #103319, inset 0 1px 0 rgba(255,255,255,.2); }
+
+.result-panel { margin-top: 16px; }
+
+.keypad {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+.key-round {
+  padding: 10px 0 8px;
+  font-size: 17px;
+  border-radius: 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+.key-round small { font-size: 9px; letter-spacing: .12em; color: #9fb0e0; }
+
+.rtttl {
+  width: 100%;
+  margin-top: 12px;
+  border: none;
+  outline: none;
+  resize: none;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-family: "Courier New", monospace;
+  font-size: 11px;
+  line-height: 1.5;
+  color: #9fe6a8;
+  background: #0a0f1c;
+  box-shadow: inset 0 2px 6px rgba(0,0,0,.8);
+}
+
+.foot {
+  margin-top: 16px;
+  text-align: center;
+  font-size: 9px;
+  letter-spacing: .3em;
+  color: #55608a;
+}

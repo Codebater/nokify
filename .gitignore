@@ -1,0 +1,12 @@
+node_modules/
+cache/
+
+# legacy Python backend
+__pycache__/
+*.pyc
+.venv/
+
+.env
+.env.local
+.DS_Store
+/tmp/

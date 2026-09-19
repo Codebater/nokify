@@ -1,0 +1,21 @@
+{
+  "name": "Nokify",
+  "short_name": "Nokify",
+  "description": "Turn any song into a Nokia-era lo-fi ringtone",
+  "display": "standalone",
+  "start_url": "/",
+  "background_color": "#0d0f0c",
+  "theme_color": "#9ec59c",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' rx='36' fill='%239ec59c'/%3E%3Ctext x='50%25' y='56%25' dominant-baseline='middle' text-anchor='middle' font-family='monospace' font-size='110' fill='%230f1d10'%3E%E2%99%AB%3C/text%3E%3C/svg%3E",
+      "sizes": "192x192",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='96' fill='%239ec59c'/%3E%3Ctext x='50%25' y='56%25' dominant-baseline='middle' text-anchor='middle' font-family='monospace' font-size='300' fill='%230f1d10'%3E%E2%99%AB%3C/text%3E%3C/svg%3E",
+      "sizes": "512x512",
+      "type": "image/svg+xml"
+    }
+  ]
+}

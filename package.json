@@ -1,0 +1,12 @@
+{
+  "name": "nokify",
+  "version": "1.0.0",
+  "description": "Turn any YouTube song part into a Nokia monophonic ringtone",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2"
+  }
+}
