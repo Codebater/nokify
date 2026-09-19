@@ -1,126 +1,129 @@
 # Nokify
 
-Nokify turns any uploaded song into a lo-fi, Nokia-era ringtone or notification tone using only open-source audio tooling — no paid APIs, no GPU, no model weights to download. Upload an MP3, review the detected chorus, and download a crunchy 8-bit WAV that sounds like it came straight from 1999.
+Turn any YouTube song into a **monophonic Nokia ringtone** — a real RTTTL string you
+can paste into a ringtone editor, a dumbphone, or an Arduino buzzer.
+
+Paste a link, scrub to the hook, hit **NOKIFY**. The melody is transcribed in your
+browser and comes back as the one-line format Nokia shipped in 1998:
+
+```
+Take On Me:d=16,o=5,b=120:f#,f#,d,8b4,8p,8b4,8p,8e,8p,8e,8p,8e,8g#,8g#,8a,8b
+```
+
+No API keys, no model weights, no upload of your own files. The pitch detection runs
+entirely client-side in Web Audio.
 
 ---
 
-## Pipeline
+## How it works
 
 ```
-upload MP3/WAV/M4A
-        │
-        ▼
-librosa.load  ──►  detect_hook()
-                   ├─ chroma_cqt features
-                   ├─ recurrence matrix (affinity)
-                   ├─ RMS energy
-                   ├─ combined score (0.55 repeat + 0.45 energy)
-                   ├─ intro/outro soft bias
-                   └─ beat-snap start time
-        │
-        ▼
-   user reviews 20s hook preview
-        │
-        ▼
-nokia_ify() DSP chain
-   ├─ force mono
-   ├─ 4th-order Butterworth low-pass @ 3.5 kHz
-   ├─ resample to 8000 Hz
-   ├─ normalize to 0.95 peak
-   ├─ bit-crush: round to 8-bit grid
-   └─ 40ms linear fade-in / fade-out
-        │
-        ▼
-  PCM_U8 WAV  ──►  download
+YouTube URL
+     │
+     ▼  server: python -m yt_dlp        (metadata + cached audio, ≤15 min videos)
+     │
+     ▼  you scrub a start point, pick 2–20s
+     │
+     ▼  server: ffmpeg -ss/-t → mono 22.05 kHz WAV, streamed (never written to disk)
+     │
+     ▼  browser: decodeAudioData → OfflineAudioContext
+     │
+     ▼  YIN pitch tracking, 100–1100 Hz, threshold 0.15
+     │
+     ▼  quantize to a 16th-note grid (125 ms cells @ 120 BPM)
+     │    majority vote per cell, cell is a rest if <40% of frames are voiced
+     │
+     ▼  merge equal-pitch runs into notes, drop 1-cell blips between identical pitches
+     │
+     ▼  RTTTL string  +  A/B playback (square-wave tone vs. the original clip)
 ```
+
+The server is 126 lines and does exactly two things: fetch and cut. Everything musical
+happens in [`public/app.js`](public/app.js).
+
+### Why YIN
+
+Autocorrelation alone octave-errors badly on real mixes. YIN's cumulative mean
+normalized difference function suppresses the sub-harmonic dip that makes a melody jump
+down an octave mid-phrase. It is still monophonic — it tracks the loudest periodic
+component, so it locks onto a lead vocal or lead synth and ignores the pad underneath.
+That limitation is the point: a Nokia ringtone *is* monophonic.
+
+### Why a 16th grid at 120 BPM
+
+RTTTL only encodes durations as fractions of a beat. Snapping to fixed 125 ms cells
+means every detected note lands on a legal RTTTL duration without a tempo-estimation
+step that would be wrong half the time on a 10-second excerpt. Songs far from 120 BPM
+still transcribe — the note *lengths* quantize, the *pitches* don't care.
 
 ---
 
-## How hook detection works
+## Running it
 
-1. **Chroma features** (`librosa.feature.chroma_cqt`) encode the pitch-class content of each frame — a proxy for harmonic similarity between frames.
-2. **Recurrence matrix** (`librosa.segment.recurrence_matrix`, affinity mode) measures how similar each frame is to every other frame. Choruses repeat, so their rows have high mean affinity.
-3. **RMS energy** weights toward louder, more energetic sections.
-4. The two signals are normalized to `[0,1]` and blended `0.55 × repeat + 0.45 × energy`.
-5. A soft bias multiplies intro frames by 0.6 and outro frames by 0.7 to avoid selecting instrumental bookends.
-6. A sliding window finds the 20-second span with the highest cumulative score.
-7. The start time is **snapped to the nearest beat** from `librosa.beat.beat_track` so the cut feels musical rather than mid-beat.
+**Requirements**
 
----
-
-## Lo-fi DSP chain
-
-| Step | What it does |
-|------|-------------|
-| `librosa.to_mono` | Collapse stereo to mono |
-| `scipy.signal.butter(4, 3500/nyq, 'low')` | Roll off frequencies above 3.5 kHz — the bandwidth of a 1990s phone earpiece |
-| `librosa.resample → 8000 Hz` | Halve the sample rate; destroys high-frequency content the filter missed |
-| Normalize to 0.95 peak | Maximize loudness without clipping |
-| `round(y × 128) / 128` | Quantize to 8-bit resolution — the signature crunch |
-| 40ms linear fades | Prevent clicks on phone speakers |
-| `soundfile.write(..., subtype="PCM_U8")` | Write unsigned 8-bit PCM — the format old Nokias actually stored in flash |
-
----
-
-## Run locally
-
-Requires Python 3.10+ and **ffmpeg** on your PATH (needed by librosa for MP3/M4A decoding).
-
-**Terminal 1 — backend:**
-```bash
-cd nokify/backend
-pip install -r requirements.txt
-python app.py
-# Flask running on http://localhost:5000
-```
-
-**Terminal 2 — frontend:**
-```bash
-cd nokify/frontend
-python -m http.server 8080
-# Open http://localhost:8080
-```
-
-Open `http://localhost:8080` in a browser. The frontend auto-discovers the API at `localhost:5000`. To point it at a different host: `http://localhost:8080?api=http://your-host:5000`.
-
-**Run the pipeline test:**
-```bash
-cd nokify/backend
-python tests/test_pipeline.py
-```
-
----
-
-## PWA install & Capacitor wrapping
-
-The frontend ships a `manifest.json`, so modern browsers will offer an "Add to Home Screen" prompt when served over HTTPS (or localhost on Android). Tap it to install Nokify as a standalone app with the green LCD icon.
-
-To wrap it as a real iOS/Android binary with Capacitor:
+- Node 18+
+- Python with `yt-dlp` — `pip install yt-dlp` (called as `python -m yt_dlp`)
+- `ffmpeg` on your `PATH`
 
 ```bash
-npm init @capacitor/app nokify-cap
-cd nokify-cap
-npm install @capacitor/core @capacitor/ios @capacitor/android
-# Copy frontend/ into www/
-cp -r ../nokify/frontend/* www/
-npx cap add ios
-npx cap add android
-npx cap open ios     # opens Xcode
-npx cap open android # opens Android Studio
+npm install
+npm start
 ```
 
-Point the `server.url` in `capacitor.config.json` at your running Flask backend, or bundle the Python backend as a sidecar using BeeWare/Briefcase for a truly self-contained app.
+Open <http://localhost:3990>.
+
+Downloaded audio is cached in `cache/` keyed by video ID, so re-scrubbing the same song
+doesn't re-download it.
 
 ---
 
-## Roadmap
+## The interface
 
-- **Better segmentation** — swap the hand-rolled recurrence matrix for [`msaf`](https://github.com/urinieto/msaf) or [`essentia`](https://essentia.upf.edu/)'s structural segmentation algorithms for more reliable verse/chorus boundary detection on complex arrangements.
+It's a Nokia. Dot-matrix LCD, signal bars, battery meter, scrolling title ticker, two
+soft keys. This is not a theme layer over a normal form — the LCD is a canvas that draws
+the detected melody as a piano-roll and sweeps a playhead across it during playback.
 
-- **More output formats** — add `.m4r` (iPhone ringtone) and `.ogg` (Android) output via an ffmpeg subprocess call in `/api/render`.
+**Play tone** renders the notes through an oscillator. **Play original** plays the same
+clip back. Toggling between them is the honest test of whether the transcription is any
+good.
 
-- **Polyphonic-MIDI mode** — use Spotify's [`basic-pitch`](https://github.com/spotify/basic-pitch) (open source, runs on CPU) to transcribe the detected hook to MIDI, then render with a square-wave synthesizer. That's the *true* Nokia 3310 sound: no audio sample, just a monophonic melody sequence in flash memory.
+---
 
-- **Auto-EQ for tiny speakers** — boost 2–4 kHz by +4–6 dB after the low-pass step; this frequency range projects through small phone speakers and makes ringtones more intelligible in noisy environments.
+## Limits
 
-- **Trim slider** — the review screen already receives `hook_start`/`hook_end` from the backend, and `/api/render` already accepts a `start_offset` parameter. Wiring up a drag handle on the timeline bar to pass `start_offset` to the render call is a one-afternoon feature.
+- **Monophonic only.** Chords, harmonies and dense mixes transcribe as whichever voice
+  is loudest, which is often not the tune you wanted.
+- **Best on clear leads.** Solo vocal, whistle, lead synth, brass. Worst on distorted
+  guitar and anything with heavy reverb tails.
+- Videos longer than 15 minutes are rejected; clips are capped at 20 seconds.
+- RTTTL has no concept of velocity, overlap or tempo change. A transcription is a
+  caricature — that's the aesthetic.
+
+---
+
+## Repo layout
+
+```
+server.js        Express (3990): /api/info, /api/clip. yt-dlp + ffmpeg.
+public/
+  index.html     the phone
+  app.js         YIN, quantizer, RTTTL encoder, playback, LCD renderer
+  style.css
+cache/           downloaded audio, gitignored
+backend/         LEGACY — the original Python/Flask + librosa build. Unused.
+```
+
+> **Before publishing:** `backend/` is a previous generation of this project (Flask,
+> librosa, MP3 upload → 8-bit WAV). Nothing in the current app references it. Either
+> delete it or move it to a `legacy/` branch so the repo doesn't ship two contradictory
+> architectures.
+
+---
+
+## License
+
+MIT. See [LICENSE](LICENSE).
+
+`yt-dlp` and `ffmpeg` are separate projects with their own licenses; this repo does not
+bundle them. You are responsible for whether your use of a given video is permitted.
