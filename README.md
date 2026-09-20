@@ -111,13 +111,10 @@ public/
   app.js         YIN, quantizer, RTTTL encoder, playback, LCD renderer
   style.css
 cache/           downloaded audio, gitignored
-backend/         LEGACY — the original Python/Flask + librosa build. Unused.
 ```
 
-> **Before publishing:** `backend/` is a previous generation of this project (Flask,
-> librosa, MP3 upload → 8-bit WAV). Nothing in the current app references it. Either
-> delete it or move it to a `legacy/` branch so the repo doesn't ship two contradictory
-> architectures.
+That is the whole project. The server fetches and cuts; everything musical happens in
+the browser.
 
 ---
 
